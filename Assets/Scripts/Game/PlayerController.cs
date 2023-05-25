@@ -71,7 +71,7 @@ public class PlayerController : Actor
                     // PlayerOrientation();
                     PlayerFire();
                 }
-                PlayerCover();
+                GetInOrOutCover();
             }
             PlayerPause();
         }
@@ -162,6 +162,19 @@ public class PlayerController : Actor
         if ((ammo == 0 || Input.GetKey(KeyCode.R)) && !isReloading)
         {
             StartCoroutine(ReloadRoutine());
+        }
+    }
+
+    protected override void GetInOrOutCover()
+    {
+        if (Input.GetKey(KeyCode.Space) && _numberOfCovers > 0 && !_onCover)
+        {
+            GetInCover();
+        }
+
+        if ((Input.GetKeyUp(KeyCode.Space) && _onCover) | !(_numberOfCovers > 0))
+        {
+            GetOutCover(Vector3.forward);
         }
     }
 

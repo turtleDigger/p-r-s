@@ -3,21 +3,18 @@ using System.Collections;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class Enemy : MonoBehaviour
+public class Enemy : Actor
 {
     public AudioClip shot, hurt;
     //public GameObject[] stepOfPath;
 
-    private bool onCover, fear, gameOver, justCreated = true, isDying = false, isFlying = false;
+    private bool fear, gameOver, justCreated = true, isDying = false, isFlying = false;
     private int hasCover, enemyCount/*, enemyType, step, speed*/;
     private readonly float minimumTimeBetweenTwoShots = 0.5f, _volumeScale = 0.5f, _choirTerm = 0.05f;
     private readonly Vector3 childInit = new Vector3(0, -0.5f, 0);
-    private Vector3 boxColliderSize, boxColliderCenter, boxColliderCoverSize, boxColliderCoverCenter;
     private SkinnedMeshRenderer[] enemySkinnedMeshRenderer;
     private AudioSource enemySource;
-    private BoxCollider enemyBoxCollider;
     private Rigidbody enemyRigidbody;
-    private Animator enemyAnimator;
     private PlayerController playerScript;
     private GameManager gameManagerScript;
 
@@ -33,7 +30,7 @@ public class Enemy : MonoBehaviour
             isDying = false;
             fear = false;
             enemySkinnedMeshRenderer[0].enabled = enemySkinnedMeshRenderer[1].enabled = enemySkinnedMeshRenderer[2].enabled = true;
-            enemyBoxCollider.enabled = true;
+            _objectCollider.enabled = true;
             enemyRigidbody.useGravity = true;
         }
         StartTactics();
@@ -54,7 +51,7 @@ public class Enemy : MonoBehaviour
 
     void Awake() // Awake() pour les ennemies spéciaux dans les maps tutoriels. Les BoxColliders ne sont affectées assez vite.
     {
-        enemyAnimator = transform.GetChild(0).GetComponent<Animator>();
+        _objectAnimator = transform.GetChild(0).GetComponent<Animator>();
         enemySkinnedMeshRenderer = new SkinnedMeshRenderer[3];
         enemySkinnedMeshRenderer[0] = transform.GetChild(0).GetChild(3).GetComponent<SkinnedMeshRenderer>();
         enemySkinnedMeshRenderer[1] = transform.GetChild(0).GetChild(4).GetComponent<SkinnedMeshRenderer>();
@@ -62,12 +59,10 @@ public class Enemy : MonoBehaviour
 
         enemySource = GetComponent<AudioSource>();
 
-        enemyBoxCollider = GetComponent<BoxCollider>();
         enemyRigidbody = GetComponent<Rigidbody>();
-        boxColliderSize = enemyBoxCollider.size;
-        boxColliderCenter = enemyBoxCollider.center;
-        boxColliderCoverSize = new Vector3(enemyBoxCollider.size.x, 1.1f, enemyBoxCollider.size.z);
-        boxColliderCoverCenter = new Vector3(enemyBoxCollider.center.x, 0.05f, enemyBoxCollider.center.z);
+
+        CreateColliderInfoForCoverMode();
+
         gameManagerScript = GameObject.Find("Game Manager").GetComponent<GameManager>();
         playerScript = GameObject.Find("Player").GetComponent<PlayerController>();
 
@@ -119,7 +114,7 @@ public class Enemy : MonoBehaviour
         float horizontalInput = Input.GetAxis("Horizontal");
         Vector3 target, orientation;
 
-        if (playerScript != null && !onCover)
+        if (playerScript != null && !_onCover)
         {
             target = playerScript.transform.position;
             target = new Vector3(target.x, 0.5f, target.z);
@@ -145,23 +140,15 @@ public class Enemy : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(orientation);
     }
 
-    public void CoverOrNot()
+    protected override void GetInOrOutCover()
     {
-        if (onCover && !fear)
+        if (_onCover && !fear)
         {
-            enemyBoxCollider.center = boxColliderCenter;
-            enemyBoxCollider.size = boxColliderSize;
-            onCover = false;
-            enemyAnimator.SetBool("isCrouch", false);
-            EnemyOrientation();
+            GetOutCover(Vector3.back);
         }
         else
         {
-            enemyBoxCollider.center = boxColliderCoverCenter;
-            enemyBoxCollider.size = boxColliderCoverSize;
-            onCover = true;
-            enemyAnimator.SetBool("isCrouch", true);
-            EnemyOrientation();
+            GetInCover();
         }
     }
 
@@ -170,9 +157,9 @@ public class Enemy : MonoBehaviour
         Vector3 bulletOffset;
         Quaternion bulletAngle;
 
-        if (onCover)
+        if (_onCover)
         {
-            CoverOrNot();
+            GetInOrOutCover();
         }
 
         for(int i = 0; i < 3 && !gameOver && !fear; i++)
@@ -203,7 +190,7 @@ public class Enemy : MonoBehaviour
 
         if (hasCover != 0)
         {
-            CoverOrNot();
+            GetInOrOutCover();
         }
     }
 
@@ -262,11 +249,11 @@ public class Enemy : MonoBehaviour
         }
 
         enemyRigidbody.useGravity = false;
-        enemyBoxCollider.enabled = false;
+        _objectCollider.enabled = false;
 
         if(!isFlying)
         {
-            enemyAnimator.SetBool("death", true);
+            _objectAnimator.SetBool("death", true);
         }
         yield return new WaitForSeconds(2);
         enemySkinnedMeshRenderer[0].enabled = enemySkinnedMeshRenderer[1].enabled = enemySkinnedMeshRenderer[2].enabled = false;

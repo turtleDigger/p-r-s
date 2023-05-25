@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Actor : MonoBehaviour
+public abstract class Actor : MonoBehaviour
 {
     protected bool _onCover/*, isReloading, hasRapidFire, isFlashing*/;
     protected int /*life, ammo, grenade, rapidFireCountdown,*/ _numberOfCovers;
@@ -23,44 +23,24 @@ public class Actor : MonoBehaviour
         _colliderCoverSize = new Vector3(_objectCollider.size.x, 1.1f, _objectCollider.size.z);
         _colliderCoverCenter = new Vector3(_objectCollider.center.x, 0.05f, _objectCollider.center.z);
     }
-    protected void PlayerCover()
-    {
-        if (Input.GetKey(KeyCode.Space) && _numberOfCovers > 0 && !_onCover)
-        {
-            _objectCollider.center = _colliderCoverCenter;
-            _objectCollider.size = _colliderCoverSize;
-            _onCover = true;
-            transform.rotation = Quaternion.LookRotation(Vector3.back);
-            _objectAnimator.SetBool("isCrouch", true);
-        }
 
-        if ((Input.GetKeyUp(KeyCode.Space) && _onCover) | !(_numberOfCovers > 0))
-        {
-            _objectCollider.center = _colliderCenter;
-            _objectCollider.size = _colliderSize;
-            _onCover = false;
-            transform.rotation = Quaternion.LookRotation(Vector3.forward);
-            _objectAnimator.SetBool("isCrouch", false);
-        }
+    protected abstract void GetInOrOutCover();
+
+    protected void GetInCover()
+    {
+        _objectCollider.center = _colliderCoverCenter;
+        _objectCollider.size = _colliderCoverSize;
+        _onCover = true;
+        _objectAnimator.SetBool("isCrouch", true);
+        transform.rotation = Quaternion.LookRotation(Vector3.back);
     }
 
-    //     public void CoverOrNot()
-    // {
-    //     if (onCover && !fear)
-    //     {
-    //         enemyBoxCollider.center = boxColliderCenter;
-    //         enemyBoxCollider.size = boxColliderSize;
-    //         onCover = false;
-    //         enemyAnimator.SetBool("isCrouch", false);
-    //         EnemyOrientation();
-    //     }
-    //     else
-    //     {
-    //         enemyBoxCollider.center = boxColliderCoverCenter;
-    //         enemyBoxCollider.size = boxColliderCoverSize;
-    //         onCover = true;
-    //         enemyAnimator.SetBool("isCrouch", true);
-    //         EnemyOrientation();
-    //     }
-    // }
+    protected void GetOutCover(Vector3 orientation)
+    {
+        _objectCollider.center = _colliderCenter;
+        _objectCollider.size = _colliderSize;
+        _onCover = false;
+        _objectAnimator.SetBool("isCrouch", false);
+        transform.rotation = Quaternion.LookRotation(orientation);
+    }
 }

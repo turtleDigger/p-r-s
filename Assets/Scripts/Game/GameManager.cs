@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour
     private int enemyCount,
     score, timeScore, pickUpBonusScore, barrelBonusScore, coverBonusScore, barrelEarn, coverEarn,
     mapLevelUpScore, mapVoidDownScore, mapLevelUpCount = 0, mapVoidDownCount = 0,
-    level = 4;
+    level = 2;
     private int [] mapInfo;
     private int[,] blocsLevel;
     public static readonly int mapSize = 13, mapOffset = 48, unitBySecond = 8, levelMax = -1, tutorialMaxLevel = 6;// levelMax = -1 pour infini.
