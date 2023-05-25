@@ -4,24 +4,22 @@ using TMPro;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : Actor
 {
     public Texture2D[] cursorTexture;
     //public Material[] playerMaterial;
     public AudioClip shot, hurt;
 
-    /*[SerializeField]*/ private bool isReloading, hasRapidFire, onCover, gameOver, isFlashing, onPause;
-    /*[SerializeField]*/ private int life = 3, ammo = 6, grenadeAmmo = 0, rapidFireCountdown, hasCover;
+    /*[SerializeField]*/ private bool isReloading, hasRapidFire, gameOver, isFlashing, onPause;
+    /*[SerializeField]*/ private int life = -1, ammo = 6, grenadeAmmo = 0, rapidFireCountdown;
     private readonly int speed = 10, xLimit = 12;
     private float whenWasLastShot;
     private readonly float minimumTimeBetweenTwoShots = 0.125f, _volumeScale = 0.5f;
     private Vector2 hotSpot;
-    private Vector3 target, orientation, boxColliderSize, boxColliderCenter, boxColliderCoverSize, boxColliderCoverCenter;
+    private Vector3 target, orientation;
     public Transform gunTransform;
     private TextMeshProUGUI ammoText, grenadeAmmoText, lifeText, rapidFireCountdownText;
     private SkinnedMeshRenderer[] playerSkinnedMeshRenderer;
-    private Animator playerAnimator;
-    private BoxCollider playerBoxCollider;
     private AudioSource playerSource;
 
     public delegate void GameOver();
@@ -32,23 +30,19 @@ public class PlayerController : MonoBehaviour
 
     void Awake()
     {
-        playerAnimator = transform.GetChild(0).GetComponent<Animator>();
+        _objectAnimator = transform.GetChild(0).GetComponent<Animator>();
 
         playerSkinnedMeshRenderer = new SkinnedMeshRenderer[2];
         playerSkinnedMeshRenderer[0] = transform.GetChild(0).GetChild(1).GetComponent<SkinnedMeshRenderer>();
         playerSkinnedMeshRenderer[1] = transform.GetChild(0).GetChild(2).GetComponent<SkinnedMeshRenderer>();
-        playerAnimator.SetBool("isRunning", true);
+        _objectAnimator.SetBool("isRunning", true);
 
         hotSpot = new Vector2(cursorTexture[0].width / 2 , cursorTexture[0].height / 2);
         Cursor.SetCursor(cursorTexture[0], hotSpot, CursorMode.Auto);
 
         playerSource = GetComponent<AudioSource>();
 
-        playerBoxCollider = GetComponent<BoxCollider>();
-        boxColliderSize = playerBoxCollider.size;
-        boxColliderCenter = playerBoxCollider.center;
-        boxColliderCoverSize = new Vector3(playerBoxCollider.size.x, 1.1f, playerBoxCollider.size.z);
-        boxColliderCoverCenter = new Vector3(playerBoxCollider.center.x, 0.05f, playerBoxCollider.center.z);
+        CreateColliderInfoForCoverMode();
 
         ammoText = GameObject.Find("Ammo Text").GetComponent<TextMeshProUGUI>();
         ammoText.SetText("Bullet " + ammo + " [R]");
@@ -70,7 +64,7 @@ public class PlayerController : MonoBehaviour
         {
             if(!onPause)
             {
-                if (!onCover)
+                if (!_onCover)
                 {
                     PlayerMove();
                     PlayerLimit();
@@ -171,27 +165,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void PlayerCover()
-    {
-        if (Input.GetKey(KeyCode.Space) && hasCover > 0 && !onCover)
-        {
-            playerBoxCollider.center = boxColliderCoverCenter;
-            playerBoxCollider.size = boxColliderCoverSize;
-            onCover = true;
-            transform.rotation = Quaternion.LookRotation(Vector3.back);
-            playerAnimator.SetBool("isCrouch", true);
-        }
-
-        if ((Input.GetKeyUp(KeyCode.Space) && onCover) | !(hasCover > 0))
-        {
-            playerBoxCollider.center = boxColliderCenter;
-            playerBoxCollider.size = boxColliderSize;
-            onCover = false;
-            transform.rotation = Quaternion.LookRotation(Vector3.forward);
-            playerAnimator.SetBool("isCrouch", false);
-        }
-    }
-
     void SpawnBullet()
     {
         Vector3 bulletOffset;
@@ -252,12 +225,12 @@ public class PlayerController : MonoBehaviour
 
     public Vector2 GetHotSpot() => hotSpot;
     public Vector3 GetTarget() => target;
-    public void SetHasCover(int i) => hasCover += i;
+    public void SetHasCover(int i) => _numberOfCovers += i;
     public void StandWalkRun(bool isRunning)
     {
-        playerAnimator.SetBool("isRunning", isRunning);
+        _objectAnimator.SetBool("isRunning", isRunning);
     }
-    public bool GetOnCover() => onCover;
+    public bool GetOnCover() => _onCover;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -274,7 +247,7 @@ public class PlayerController : MonoBehaviour
             {
                 gameOver = true;
                 OnGameOver();
-                playerAnimator.SetBool("death", true);
+                _objectAnimator.SetBool("death", true);
                 //playerAnimator.SetInteger("DeathType_int", Random.Range(1, 3));
             }
         }
