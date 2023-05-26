@@ -169,12 +169,12 @@ public class PlayerController : Actor
     {
         if (Input.GetKey(KeyCode.Space) && _numberOfCovers > 0 && !_onCover)
         {
-            GetInCover();
+            ModifyColliderAndStance(Vector3.back);
         }
 
-        if ((Input.GetKeyUp(KeyCode.Space) && _onCover) | !(_numberOfCovers > 0))
+        if (Input.GetKeyUp(KeyCode.Space) && _onCover)
         {
-            GetOutCover(Vector3.forward);
+            ModifyColliderAndStance(Vector3.forward);
         }
     }
 

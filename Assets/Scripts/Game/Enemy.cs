@@ -144,11 +144,11 @@ public class Enemy : Actor
     {
         if (_onCover && !fear)
         {
-            GetOutCover(Vector3.back);
+            ModifyColliderAndStance(Vector3.back);
         }
         else
         {
-            GetInCover();
+            ModifyColliderAndStance(Vector3.back);
         }
     }
 
