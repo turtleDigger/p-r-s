@@ -108,36 +108,6 @@ public class PlayerController : Actor
         }
     }
 
-    // void PlayerOrientation()
-    // {        
-    //     Plane plane = new Plane(Vector3.up, Vector3.zero);
-    //     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-    //     // if (plane.Raycast(ray, out float distance))
-    //     // {
-    //     //     Debug.DrawRay(ray.origin, ray.direction * distance, Color.green);
-
-    //     if(Physics.Raycast(ray, out RaycastHit hit))
-    //     {
-    //         target = ray.GetPoint(hit.distance);
-    //         Debug.DrawRay(ray.origin, ray.direction * hit.distance, Color.red);
-    //     }
-    //     // }
-
-    //     // orientation = (target - transform.position).normalized;
-    //     // orientation = new Vector3(orientation.x, 0, orientation.z);
-
-    //     if(hit.collider.CompareTag("Ground"))
-    //     {
-    //         target = new Vector3(target.x, 2.3f, target.z);
-    //     }
-
-    //     // if (orientation != Vector3.zero)
-    //     // {
-    //     //     transform.rotation = Quaternion.LookRotation(orientation);
-    //     // }
-    // }
-
     void PlayerOrientation()
     {
         Plane plane = new Plane(Vector3.up, Vector3.zero);
@@ -224,64 +194,6 @@ public class PlayerController : Actor
             ModifyColliderAndStance(Vector3.forward);
         }
     }
-
-    // void SpawnBullet()
-    // {
-    //     PlayerOrientation();
-
-    //     if (Time.time - whenWasLastShot > minimumTimeBetweenTwoShots && ammo != 0)
-    //     {
-    //         Vector3 bulletOffset;
-    //         Quaternion bulletAngle;
-            
-    //         bulletOffset = Vector3.zero/*1.5f * transform.up*/;
-
-    //         GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject(7);
-    //         if (pooledProjectile != null)
-    //         {
-    //             pooledProjectile.SetActive(true);
-    //             pooledProjectile.transform.position = gunTransform.position/*transform.position + bulletOffset*/;
-
-    //             bulletAngle = Quaternion.LookRotation((target - pooledProjectile.transform.position).normalized);
-
-    //             pooledProjectile.transform.rotation = bulletAngle;
-
-    //             ammo--;
-    //             ammoText.SetText("Bullet " + ammo + " [R]");
-                
-    //             VolumeScaleAdjustment(shot);
-
-    //             whenWasLastShot = Time.time;
-    //         }
-    //     }
-    // }
-
-    // void SpawnBullet(int objectToPoolIndex)
-    // {
-    //         Vector3 bulletOffset;
-    //         Quaternion bulletAngle;
-
-    //         bulletAngle = transform.rotation;
-
-    //         if(_hasToTilt)
-    //         {
-    //             bulletAngle *= _tilt;
-    //         }
-            
-    //         bulletOffset = 1.5f * transform.up;
-
-    //         GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject(objectToPoolIndex);
-    //         if (pooledProjectile != null)
-    //         {
-    //             pooledProjectile.SetActive(true);
-    //             pooledProjectile.transform.position = transform.position + bulletOffset;
-    //             pooledProjectile.transform.rotation = bulletAngle;
-
-    //             _ammo--;
-                
-    //             VolumeScaleAdjustment(shot);
-    //         }
-    // }
 
     private void SpawnGrenade()
     {

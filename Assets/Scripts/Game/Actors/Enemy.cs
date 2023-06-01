@@ -153,48 +153,6 @@ public class Enemy : Actor
         }
     }
 
-    // private IEnumerator EnemyFire()
-    // {
-    //     Vector3 bulletOffset;
-    //     Quaternion bulletAngle;
-
-    //     if (_onCover)
-    //     {
-    //         GetInOrOutCover();
-    //     }
-
-    //     for(int i = 0; i < 3 && !gameOver && !fear; i++)
-    //     {
-    //         bulletAngle = transform.rotation;
-            
-    //         if (playerScript.GetOnCover())
-    //         {
-    //             bulletAngle *= Quaternion.Euler(2, 0, 0);
-    //         }
-
-    //         bulletOffset = 1.5f * transform.up;
-
-    //         EnemyOrientation();
-
-    //         GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject(8);
-    //         if (pooledProjectile != null)
-    //         {
-    //             pooledProjectile.SetActive(true);
-    //             pooledProjectile.transform.position = transform.position + bulletOffset;
-    //             pooledProjectile.transform.rotation = bulletAngle;
-        
-    //             VolumeScaleAdjustment(shot);
-
-    //             yield return new WaitForSeconds(minimumTimeBetweenTwoShots);
-    //         }
-    //     }
-
-    //     if (hasCover != 0)
-    //     {
-    //         GetInOrOutCover();
-    //     }
-    // }
-
     private IEnumerator EnemyFire()
     {
         if (_onCover)
@@ -214,34 +172,6 @@ public class Enemy : Actor
             GetInOrOutCover();
         }
     }
-
-    // void SpawnBullet(int objectToPoolIndex)
-    // {
-
-    //     Vector3 bulletOffset;
-    //     Quaternion bulletAngle;
-        
-    //     bulletAngle = transform.rotation;
-        
-    //     if (_hasToTilt)
-    //     {
-    //         bulletAngle *= _tilt;
-    //     }
-
-    //     bulletOffset = 1.5f * transform.up;
-
-    //     GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject(objectToPoolIndex);
-    //     if (pooledProjectile != null)
-    //     {
-    //         pooledProjectile.SetActive(true);
-    //         pooledProjectile.transform.position = transform.position + bulletOffset;
-    //         pooledProjectile.transform.rotation = bulletAngle;
-
-    //         ammo--;
-    
-    //         VolumeScaleAdjustment(shot);
-    //     }
-    // }
 
     // IEnumerator GetAllStepOfPath()
     // {
