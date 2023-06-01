@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour
     private int enemyCount,
     score, timeScore, pickUpBonusScore, barrelBonusScore, coverBonusScore, barrelEarn, coverEarn,
     mapLevelUpScore, mapVoidDownScore, mapLevelUpCount = 0, mapVoidDownCount = 0,
-    level = 4;
+    level = 0;
     private int [] mapInfo;
     private int[,] blocsLevel;
     public static readonly int mapSize = 13, mapOffset = 48, unitBySecond = 8, levelMax = -1, tutorialMaxLevel = 6;// levelMax = -1 pour infini.
@@ -143,7 +143,18 @@ public class GameManager : MonoBehaviour
     {
         Vector3 offset;
 
-        offset = prefabNum == 7 | (prefabNum > 1 & prefabNum < 5) ? Vector3.up*3 : Vector3.up * 0.4f;
+        if(prefabNum > 1 & prefabNum < 5)
+        {
+            offset = Vector3.up * 1.3f;
+        }
+        else if (prefabNum == 7)
+        {
+            offset = Vector3.up * 3;
+        }
+        else
+        {
+            offset = Vector3.up * 0.4f;
+        }
 
         if (prefabNum < 6)
         {

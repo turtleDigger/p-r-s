@@ -5,17 +5,22 @@ using UnityEngine;
 
 public abstract class Actor : MonoBehaviour
 {
-    protected bool _onCover/*, isReloading, hasRapidFire, isFlashing*/;
-    protected int /*life, ammo, grenade, rapidFireCountdown,*/ _numberOfCovers;
+    [SerializeField]protected AudioClip shot;
+
+    protected bool _onCover, _hasToTilt/*, isReloading, hasRapidFire, isFlashing*/;
+    protected int /*life,*/ _ammo, /*grenade, rapidFireCountdown,*/ _numberOfCovers;
     // float speed, whenWasLastShot, minimumTimeBetweenTwoShots, volumeScale;
     // protected Vector3 target, orientation;
     protected Vector3[] _sizeForCover, _centerForCover;
+    protected readonly Quaternion _tilt = Quaternion.Euler(2, 0, 0);
     // Transform gunTranform;
     protected BoxCollider _objectCollider;
     // AudioSource objectAudioSource;
     protected Animator _objectAnimator;
     // SkinnedMeshRenderer objectSMR;
     // Material[] objectMaterials;
+
+    protected abstract void VolumeScaleAdjustment(AudioClip clip);
     
     // Cette méthode stocke les valeurs size et center du BoxCollider du gameObject.
     // Puis elle crée en conséquences les valeurs size et center que devra prendre le BoxCollider du gameObject quand il sera en mode couverture.
@@ -32,8 +37,6 @@ public abstract class Actor : MonoBehaviour
         _centerForCover[1] = new Vector3(_objectCollider.center.x, 0.05f, _objectCollider.center.z);
     }
 
-    protected abstract void GetInOrOutCover();
-
     // Cette méthode modifie les valeurs du BoxCollider, de l'Animator et de la rotation du gameObject.
     // Il n'y a que deux valeurs possibles pour le BoxCollider et l'Animator régies par la valeur de _onCover.
     // Elle prend en paramètre un Vector3 qui détermine la direction dans laquelle pointe le gameObject.
@@ -49,5 +52,33 @@ public abstract class Actor : MonoBehaviour
         _objectAnimator.SetBool("isCrouch", _onCover);
 
         transform.rotation = Quaternion.LookRotation(orientation);
+    }
+
+    protected void SpawnBullet(int objectToPoolIndex)
+    {
+
+        Vector3 bulletOffset;
+        Quaternion bulletAngle;
+        
+        bulletAngle = transform.rotation;
+        
+        if (_hasToTilt)
+        {
+            bulletAngle *= _tilt;
+        }
+
+        bulletOffset = 1.5f * transform.up;
+
+        GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject(objectToPoolIndex);
+        if (pooledProjectile != null)
+        {
+            pooledProjectile.SetActive(true);
+            pooledProjectile.transform.position = transform.position + bulletOffset;
+            pooledProjectile.transform.rotation = bulletAngle;
+
+            _ammo--;
+    
+            VolumeScaleAdjustment(shot);
+        }
     }
 }

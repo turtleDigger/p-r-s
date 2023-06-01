@@ -23,7 +23,7 @@ public class Bonus : MonoBehaviour
             {
                 bonusCollider.enabled = true;
             }
-            GetComponent<Rigidbody>().useGravity = true;
+            // GetComponent<Rigidbody>().useGravity = true;
             bonusText.text = "Shoot me";
             bonusSource.PlayOneShot(blipUn, 0.5f);
             spark.Play();
@@ -70,7 +70,7 @@ public class Bonus : MonoBehaviour
 
     private IEnumerator IsGetCoroutine()
     {
-        GetComponent<Rigidbody>().useGravity = false;
+        // GetComponent<Rigidbody>().useGravity = false;
         foreach (Collider bonusCollider in gameObject.GetComponents<BoxCollider>())
         {
             bonusCollider.enabled = false;

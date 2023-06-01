@@ -5,11 +5,12 @@ using Random = UnityEngine.Random;
 
 public class Enemy : Actor
 {
-    public AudioClip shot, hurt;
+    public AudioClip hurt;
     //public GameObject[] stepOfPath;
 
     private bool fear, gameOver, justCreated = true, isDying = false, isFlying = false;
-    private int hasCover, enemyCount/*, enemyType, step, speed*/;
+    private int hasCover, enemyCount, ammo = 0/*, enemyType, step, speed*/;
+    private float whenWasLastShot;
     private readonly float minimumTimeBetweenTwoShots = 0.5f, _volumeScale = 0.5f, _choirTerm = 0.05f;
     private readonly Vector3 childInit = new Vector3(0, -0.5f, 0);
     private SkinnedMeshRenderer[] enemySkinnedMeshRenderer;
@@ -140,7 +141,7 @@ public class Enemy : Actor
         transform.rotation = Quaternion.LookRotation(orientation);
     }
 
-    protected override void GetInOrOutCover()
+    protected void GetInOrOutCover()
     {
         if (_onCover && !fear)
         {
@@ -152,11 +153,50 @@ public class Enemy : Actor
         }
     }
 
+    // private IEnumerator EnemyFire()
+    // {
+    //     Vector3 bulletOffset;
+    //     Quaternion bulletAngle;
+
+    //     if (_onCover)
+    //     {
+    //         GetInOrOutCover();
+    //     }
+
+    //     for(int i = 0; i < 3 && !gameOver && !fear; i++)
+    //     {
+    //         bulletAngle = transform.rotation;
+            
+    //         if (playerScript.GetOnCover())
+    //         {
+    //             bulletAngle *= Quaternion.Euler(2, 0, 0);
+    //         }
+
+    //         bulletOffset = 1.5f * transform.up;
+
+    //         EnemyOrientation();
+
+    //         GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject(8);
+    //         if (pooledProjectile != null)
+    //         {
+    //             pooledProjectile.SetActive(true);
+    //             pooledProjectile.transform.position = transform.position + bulletOffset;
+    //             pooledProjectile.transform.rotation = bulletAngle;
+        
+    //             VolumeScaleAdjustment(shot);
+
+    //             yield return new WaitForSeconds(minimumTimeBetweenTwoShots);
+    //         }
+    //     }
+
+    //     if (hasCover != 0)
+    //     {
+    //         GetInOrOutCover();
+    //     }
+    // }
+
     private IEnumerator EnemyFire()
     {
-        Vector3 bulletOffset;
-        Quaternion bulletAngle;
-
         if (_onCover)
         {
             GetInOrOutCover();
@@ -164,28 +204,9 @@ public class Enemy : Actor
 
         for(int i = 0; i < 3 && !gameOver && !fear; i++)
         {
-            bulletAngle = transform.rotation;
-            
-            if (playerScript.GetOnCover())
-            {
-                bulletAngle *= Quaternion.Euler(1, 0, 0);
-            }
-
-            bulletOffset = 1.5f * transform.up;
-
             EnemyOrientation();
-
-            GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject(8);
-            if (pooledProjectile != null)
-            {
-                pooledProjectile.SetActive(true);
-                pooledProjectile.transform.position = transform.position + bulletOffset;
-                pooledProjectile.transform.rotation = bulletAngle;
-        
-                VolumeScaleAdjustment(shot);
-
-                yield return new WaitForSeconds(minimumTimeBetweenTwoShots);
-            }
+            SpawnBullet(8);
+            yield return new WaitForSeconds(minimumTimeBetweenTwoShots);
         }
 
         if (hasCover != 0)
@@ -193,6 +214,34 @@ public class Enemy : Actor
             GetInOrOutCover();
         }
     }
+
+    // void SpawnBullet(int objectToPoolIndex)
+    // {
+
+    //     Vector3 bulletOffset;
+    //     Quaternion bulletAngle;
+        
+    //     bulletAngle = transform.rotation;
+        
+    //     if (_hasToTilt)
+    //     {
+    //         bulletAngle *= _tilt;
+    //     }
+
+    //     bulletOffset = 1.5f * transform.up;
+
+    //     GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject(objectToPoolIndex);
+    //     if (pooledProjectile != null)
+    //     {
+    //         pooledProjectile.SetActive(true);
+    //         pooledProjectile.transform.position = transform.position + bulletOffset;
+    //         pooledProjectile.transform.rotation = bulletAngle;
+
+    //         ammo--;
+    
+    //         VolumeScaleAdjustment(shot);
+    //     }
+    // }
 
     // IEnumerator GetAllStepOfPath()
     // {
@@ -222,7 +271,7 @@ public class Enemy : Actor
     }
     public void Death() => StartCoroutine(DeathCoroutine());
 
-    void VolumeScaleAdjustment(AudioClip clip)
+    protected override void VolumeScaleAdjustment(AudioClip clip)
     {
         if (enemyCount > 8)
         {

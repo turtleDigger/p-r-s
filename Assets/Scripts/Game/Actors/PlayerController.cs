@@ -8,10 +8,10 @@ public class PlayerController : Actor
 {
     public Texture2D[] cursorTexture;
     //public Material[] playerMaterial;
-    public AudioClip shot, hurt;
+    public AudioClip hurt;
 
     /*[SerializeField]*/ private bool isReloading, hasRapidFire, gameOver, isFlashing, onPause;
-    /*[SerializeField]*/ private int life = -1, ammo = 6, grenadeAmmo = 0, rapidFireCountdown;
+    /*[SerializeField]*/ private int life = -1, grenadeAmmo = 0, rapidFireCountdown;
     private readonly int speed = 10, xLimit = 12;
     private float whenWasLastShot;
     private readonly float minimumTimeBetweenTwoShots = 0.125f, _volumeScale = 0.5f;
@@ -30,6 +30,7 @@ public class PlayerController : Actor
 
     void Awake()
     {
+        _ammo = 6;
         _objectAnimator = transform.GetChild(0).GetComponent<Animator>();
 
         playerSkinnedMeshRenderer = new SkinnedMeshRenderer[2];
@@ -45,7 +46,7 @@ public class PlayerController : Actor
         CreateColliderInfoForCoverMode();
 
         ammoText = GameObject.Find("Ammo Text").GetComponent<TextMeshProUGUI>();
-        ammoText.SetText("Bullet " + ammo + " [R]");
+        ammoText.SetText("Bullet " + _ammo + " [R]");
 
         grenadeAmmoText = GameObject.Find("Grenade Ammo Text").GetComponent<TextMeshProUGUI>();
         grenadeAmmoText.SetText("Grenade " + grenadeAmmo);
@@ -107,8 +108,38 @@ public class PlayerController : Actor
         }
     }
 
+    // void PlayerOrientation()
+    // {        
+    //     Plane plane = new Plane(Vector3.up, Vector3.zero);
+    //     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+    //     // if (plane.Raycast(ray, out float distance))
+    //     // {
+    //     //     Debug.DrawRay(ray.origin, ray.direction * distance, Color.green);
+
+    //     if(Physics.Raycast(ray, out RaycastHit hit))
+    //     {
+    //         target = ray.GetPoint(hit.distance);
+    //         Debug.DrawRay(ray.origin, ray.direction * hit.distance, Color.red);
+    //     }
+    //     // }
+
+    //     // orientation = (target - transform.position).normalized;
+    //     // orientation = new Vector3(orientation.x, 0, orientation.z);
+
+    //     if(hit.collider.CompareTag("Ground"))
+    //     {
+    //         target = new Vector3(target.x, 2.3f, target.z);
+    //     }
+
+    //     // if (orientation != Vector3.zero)
+    //     // {
+    //     //     transform.rotation = Quaternion.LookRotation(orientation);
+    //     // }
+    // }
+
     void PlayerOrientation()
-    {        
+    {
         Plane plane = new Plane(Vector3.up, Vector3.zero);
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
@@ -123,18 +154,20 @@ public class PlayerController : Actor
         }
         // }
 
-        // orientation = (target - transform.position).normalized;
-        // orientation = new Vector3(orientation.x, 0, orientation.z);
+        orientation = (target - transform.position).normalized;
+        orientation = new Vector3(orientation.x, 0, orientation.z);
 
         if(hit.collider.CompareTag("Ground"))
         {
             target = new Vector3(target.x, 2.3f, target.z);
         }
 
-        // if (orientation != Vector3.zero)
-        // {
-        //     transform.rotation = Quaternion.LookRotation(orientation);
-        // }
+        _hasToTilt = hit.collider.CompareTag("Cover") | hit.collider.CompareTag("Red Barrel") ? true : false;
+
+        if (orientation != Vector3.zero)
+        {
+            transform.rotation = Quaternion.LookRotation(orientation);
+        }
     }
 
     void PlayerFire()
@@ -143,14 +176,28 @@ public class PlayerController : Actor
         {
             if (Input.GetMouseButton(0) && !isReloading)
             {
-                SpawnBullet();
+                PlayerOrientation();
+
+                if (Time.time - whenWasLastShot > minimumTimeBetweenTwoShots && _ammo != 0)
+                {
+                    SpawnBullet(7);
+                    whenWasLastShot = Time.time;
+                    ammoText.SetText("Bullet " + _ammo + " [R]");
+                }
             }
         }
         else
         {
             if (Input.GetMouseButtonDown(0) && !isReloading)
             {
-                SpawnBullet();
+                PlayerOrientation();
+
+                if (Time.time - whenWasLastShot > minimumTimeBetweenTwoShots && _ammo != 0)
+                {
+                    SpawnBullet(7);
+                    whenWasLastShot = Time.time;
+                    ammoText.SetText("Bullet " + _ammo + " [R]");
+                }
             }
         }
 
@@ -159,13 +206,13 @@ public class PlayerController : Actor
             SpawnGrenade();
         }
 
-        if ((ammo == 0 || Input.GetKey(KeyCode.R)) && !isReloading)
+        if ((_ammo == 0 || Input.GetKey(KeyCode.R)) && !isReloading)
         {
             StartCoroutine(ReloadRoutine());
         }
     }
 
-    protected override void GetInOrOutCover()
+    protected void GetInOrOutCover()
     {
         if (Input.GetKey(KeyCode.Space) && _numberOfCovers > 0 && !_onCover)
         {
@@ -178,35 +225,63 @@ public class PlayerController : Actor
         }
     }
 
-    void SpawnBullet()
-    {
-        Vector3 bulletOffset;
-        Quaternion bulletAngle;
+    // void SpawnBullet()
+    // {
+    //     PlayerOrientation();
 
-        if (Time.time - whenWasLastShot > minimumTimeBetweenTwoShots && ammo != 0)
-        {
-            PlayerOrientation();
-            bulletOffset = Vector3.zero/*1.5f * transform.up*/;
+    //     if (Time.time - whenWasLastShot > minimumTimeBetweenTwoShots && ammo != 0)
+    //     {
+    //         Vector3 bulletOffset;
+    //         Quaternion bulletAngle;
+            
+    //         bulletOffset = Vector3.zero/*1.5f * transform.up*/;
 
-            GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject(7);
-            if (pooledProjectile != null)
-            {
-                pooledProjectile.SetActive(true);
-                pooledProjectile.transform.position = gunTransform.position/*transform.position + bulletOffset*/;
+    //         GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject(7);
+    //         if (pooledProjectile != null)
+    //         {
+    //             pooledProjectile.SetActive(true);
+    //             pooledProjectile.transform.position = gunTransform.position/*transform.position + bulletOffset*/;
 
-                bulletAngle = Quaternion.LookRotation((target - pooledProjectile.transform.position).normalized);
+    //             bulletAngle = Quaternion.LookRotation((target - pooledProjectile.transform.position).normalized);
 
-                pooledProjectile.transform.rotation = bulletAngle;
+    //             pooledProjectile.transform.rotation = bulletAngle;
 
-                ammo--;
-                ammoText.SetText("Bullet " + ammo + " [R]");
+    //             ammo--;
+    //             ammoText.SetText("Bullet " + ammo + " [R]");
                 
-                VolumeScaleAdjustment(shot);
+    //             VolumeScaleAdjustment(shot);
 
-                whenWasLastShot = Time.time;
-            }
-        }
-    }
+    //             whenWasLastShot = Time.time;
+    //         }
+    //     }
+    // }
+
+    // void SpawnBullet(int objectToPoolIndex)
+    // {
+    //         Vector3 bulletOffset;
+    //         Quaternion bulletAngle;
+
+    //         bulletAngle = transform.rotation;
+
+    //         if(_hasToTilt)
+    //         {
+    //             bulletAngle *= _tilt;
+    //         }
+            
+    //         bulletOffset = 1.5f * transform.up;
+
+    //         GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject(objectToPoolIndex);
+    //         if (pooledProjectile != null)
+    //         {
+    //             pooledProjectile.SetActive(true);
+    //             pooledProjectile.transform.position = transform.position + bulletOffset;
+    //             pooledProjectile.transform.rotation = bulletAngle;
+
+    //             _ammo--;
+                
+    //             VolumeScaleAdjustment(shot);
+    //         }
+    // }
 
     private void SpawnGrenade()
     {
@@ -266,7 +341,7 @@ public class PlayerController : Actor
         }
     }
 
-    void VolumeScaleAdjustment(AudioClip clip)
+    protected override void VolumeScaleAdjustment(AudioClip clip)
     {
         playerSource.PlayOneShot(clip, _volumeScale * DataManager.Instance.VolumeScaleFactor);
     }
@@ -298,8 +373,8 @@ public class PlayerController : Actor
     {
         isReloading = true;
         yield return new WaitForSeconds(2);
-        ammo = hasRapidFire ? 30 : 6;
-        ammoText.SetText("Bullet " + ammo + " [R]");
+        _ammo = hasRapidFire ? 30 : 6;
+        ammoText.SetText("Bullet " + _ammo + " [R]");
         isReloading = false;
     }
 
@@ -307,9 +382,9 @@ public class PlayerController : Actor
     {
         if(!hasRapidFire)
         {
-            ammo = 30;
+            _ammo = 30;
             hasRapidFire = true;
-            ammoText.SetText("Bullet " + ammo + " [R]");
+            ammoText.SetText("Bullet " + _ammo + " [R]");
             rapidFireCountdown += 30;
             rapidFireCountdownText.gameObject.SetActive(true);
             rapidFireCountdownText.SetText("" + rapidFireCountdown);
@@ -321,8 +396,8 @@ public class PlayerController : Actor
             }
             rapidFireCountdownText.gameObject.SetActive(false);
             hasRapidFire = false;
-            ammo = 6;
-            ammoText.SetText("Bullet " + ammo + " [R]");
+            _ammo = 6;
+            ammoText.SetText("Bullet " + _ammo + " [R]");
         }
         else
         {
